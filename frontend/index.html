@@ -1,0 +1,125 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142d68">
+  <title>MUST | Examination Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-art">
+      <div class="art-top"><span class="crest must-crest" aria-label="MUST-inspired badge">
+  <svg viewBox="0 0 64 72" aria-hidden="true">
+    <path d="M32 3 L58 12 V34 C58 49 47 61 32 69 C17 61 6 49 6 34 V12 Z" fill="#fff" stroke="#c9a64b" stroke-width="3"/>
+    <path d="M32 8 L53 15 V34 C53 46 44 56 32 63 C20 56 11 46 11 34 V15 Z" fill="#142d68"/>
+    <path d="M19 25 H25 L32 35 L39 25 H45 V47 H39 V34 L32 44 L25 34 V47 H19 Z" fill="#fff"/>
+    <path d="M21 53 H43" stroke="#c9a64b" stroke-width="2"/>
+  </svg>
+</span><span>Mbarara University of Science and Technology</span></div>
+      <div class="art-copy">
+        <span class="eyebrow light">ACADEMIC SERVICES Â· DIGITAL CAMPUS</span>
+        <h1>Excellence in<br><em>every result.</em></h1>
+        <p>A connected examination workflow for submitting, reviewing, approving and publishing academic results.</p>
+        <div class="art-tags"><span>Secure</span><span>Transparent</span><span>Accountable</span></div>
+      </div>
+      <div class="art-bottom"><span>EST. 1989</span><span>EXAMINATION RESULTS MANAGEMENT SYSTEM</span></div>
+      <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+    </div>
+    <div class="login-side">
+      <div class="login-topline"><span class="mobile-crest">MUST</span><span class="secure-label"><i></i> SECURE PORTAL</span></div>
+      <div class="login-card">
+        <div class="section-label">WELCOME BACK</div>
+        <h2>Sign in to continue</h2>
+        <p class="subtle">Access your examination management workspace.</p>
+        <form id="loginForm">
+          <label for="email">University email</label>
+          <div class="input-wrap"><span class="input-icon">âœ‰</span><input id="email" type="email" autocomplete="username" placeholder="name@must.ac.ug" required></div>
+          <label for="password">Password</label>
+          <div class="input-wrap"><span class="input-icon">âŒ‘</span><input id="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="reveal" id="togglePassword" type="button" aria-label="Show password">Show</button></div>
+          <p id="loginError" class="error-message" role="alert"></p>
+          <button id="loginButton" class="primary-btn full-btn" type="submit">Sign in <span>â†’</span></button>
+        </form>
+
+        <div class="login-foot"><span class="lock">â–£</span> Your session is protected by role-based access controls.</div>
+      </div>
+      <div class="login-footer">Â© Mbarara University of Science and Technology <span>Â·</span> Examination Services</div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <a class="side-brand" href="#" aria-label="MUST home"><span class="crest small-crest">M</span><span><b>MUST</b><small>EXAMINATION SERVICES</small></span></a>
+      <div class="side-caption">WORKSPACE</div>
+      <nav class="side-nav" id="sideNav">
+        <button class="nav-link active" data-page="overview"><span class="nav-icon">âŒ‚</span>Overview</button>
+        <button class="nav-link" data-page="submissions"><span class="nav-icon">â–¤</span>Results &amp; submissions</button>
+        <button class="nav-link hidden" id="auditNav" data-page="audit"><span class="nav-icon">â—·</span>Audit trail</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card">
+  <span class="help-mark">?</span>
+  <b>Need assistance?</b>
+  <p>Contact your department examination coordinator for support.</p>
+  <a href="https://www.must.ac.ug/" target="_blank" rel="noopener noreferrer">Visit MUST website →</a>
+</div>
+        <div class="side-user"><div class="avatar" id="sideAvatar">M</div><div class="side-user-copy"><b id="sideName">Portal user</b><small id="sideRole">USER</small></div><button id="sideLogout" class="logout-icon" title="Sign out">â†—</button></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left"><button id="menuToggle" class="menu-toggle" aria-label="Open navigation">â˜°</button><div><div class="crumb">MUST <span>/</span> <b id="crumbPage">Overview</b></div><div class="topbar-title" id="pageHeading">Overview</div></div></div>
+        <div class="topbar-right"><div class="system-status"><i></i><span>System operational</span></div><div class="top-user"><div class="avatar tiny-avatar" id="topAvatar">M</div><div><b id="topName">Portal user</b><small id="topRole">USER</small></div></div></div>
+      </header>
+
+      <div class="page-content">
+        <div id="toast" class="toast hidden" role="status"></div>
+        <section id="overviewPage" class="page">
+          <div class="welcome-row">
+            <div><div class="section-label" id="welcomeKicker">YOUR WORKSPACE</div><h1 id="welcomeHeading">Good day</h1><p id="welcomeSub">Here is your examination activity at a glance.</p></div>
+            <div class="date-chip"><span class="date-symbol">â–¦</span><span><small>ACADEMIC SESSION</small><b>2026 / 2027</b></span></div>
+          </div>
+          <div id="statGrid" class="stat-grid"></div>
+          <div class="content-grid">
+            <section class="surface main-surface">
+              <div class="surface-head"><div><div class="section-label">WORKSPACE</div><h2 id="actionHeading">Quick actions</h2></div><span class="head-mark">MUST</span></div>
+              <div id="actionArea"></div>
+            </section>
+            <section class="surface workflow-surface">
+              <div class="section-label">RESULTS LIFECYCLE</div><h2>Academic workflow</h2>
+              <div class="workflow-list">
+                <div class="workflow-step"><span class="step-number">01</span><div><b>Submission</b><small>Lecturer enters and submits marks</small></div></div>
+                <div class="workflow-step"><span class="step-number">02</span><div><b>Verification</b><small>Academic reviewer checks accuracy</small></div></div>
+                <div class="workflow-step"><span class="step-number">03</span><div><b>Approval</b><small>Registrar authorises the results</small></div></div>
+                <div class="workflow-step"><span class="step-number">04</span><div><b>Publication</b><small>Approved results become visible</small></div></div>
+              </div>
+            </section>
+          </div>
+          <section class="surface table-surface">
+            <div class="surface-head"><div><div class="section-label">LATEST RECORDS</div><h2 id="recentHeading">Recent activity</h2></div><button class="quiet-btn" data-goto="submissions">View all records <span>â†’</span></button></div>
+            <div id="recentTable" class="table-container"><div class="loading-state">Loading recordsâ€¦</div></div>
+          </section>
+        </section>
+
+        <section id="submissionsPage" class="page hidden">
+          <div class="page-intro"><div><div class="section-label">ACADEMIC RECORDS</div><h1>Results &amp; submissions</h1><p>Track examination records and their progress through the approval process.</p></div><div class="page-intro-icon">â–¤</div></div>
+          <section class="surface table-surface"><div class="surface-head"><div><h2>Submission register</h2><p class="subtle">Records available to your account permissions.</p></div><span class="record-count" id="recordCount">0 records</span></div><div id="allResultsTable" class="table-container"><div class="loading-state">Loading recordsâ€¦</div></div></section>
+        </section>
+
+        <section id="auditPage" class="page hidden">
+          <div class="page-intro"><div><div class="section-label">SYSTEM GOVERNANCE</div><h1>Audit trail</h1><p>A chronological record of key examination management actions.</p></div><div class="page-intro-icon">â—·</div></div>
+          <section class="surface table-surface"><div class="surface-head"><div><h2>System activity</h2><p class="subtle">Submission, verification, approval and publication events.</p></div><span class="record-count">Latest 200 events</span></div><div id="auditTable" class="table-container"><div class="loading-state">Loading audit recordsâ€¦</div></div></section>
+        </section>
+        <footer class="app-footer"><span>MBARARA UNIVERSITY OF SCIENCE AND TECHNOLOGY</span><span>EXAMINATION RESULTS MANAGEMENT SYSTEM <b>Â·</b> v1.0</span></footer>
+      </div>
+    </main>
+  </div>
+  <div id="mobileOverlay" class="mobile-overlay hidden"></div>
+</body>
+</html>
