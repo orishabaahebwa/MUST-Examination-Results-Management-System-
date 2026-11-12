@@ -1,0 +1,43 @@
+{
+  "name": "must-examination-results-management",
+  "version": "1.0.0",
+  "description": "MUST examination results management academic prototype",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "next start",
+    "dev": "next dev",
+    "build": "next build",
+    "start:legacy": "node backend/server.js",
+    "dev:legacy": "nodemon backend/server.js",
+    "seed": "node backend/seed.js",
+    "test": "node --test tests/*.test.mjs",
+    "test:legacy": "node --test backend/tests/*.test.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.3",
+    "next": "16.4.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.4.6",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4",
+    "typescript": "5.9.3"
+  }
+}

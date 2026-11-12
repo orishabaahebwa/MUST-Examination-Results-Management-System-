@@ -1,0 +1,51 @@
+# Environment files; keep only the placeholder template in source control
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+coverage/
+
+# Local Supabase CLI state
+supabase/.temp/
+supabase/.branches/
+
+# Local backups and record-bearing SQL exports
+backups/
+*.dump
+*.bak
+*.sql.gz
+*.backup.sql
+*_backup.sql
+*-backup.sql
+*backup*.sql
+*_dump.sql
+*-dump.sql
+*dump*.sql
+*_export.sql
+*-export.sql
+
+# Legacy frontend snapshots
+frontend_backup_*/
+frontend/*.before-*
+frontend/*.backup.*
+
+# Private key material and generated files
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.log
+.DS_Store
+Thumbs.db
+
+# TypeScript build cache
+*.tsbuildinfo

@@ -1,0 +1,108 @@
+{
+  "info": {
+    "name": "MUST Examination Results Management API",
+    "description": "Academic prototype workflow and negative API tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key":"baseUrl","value":"http://localhost:3000"},
+    {"key":"token","value":""},
+    {"key":"submissionId","value":"1"},
+    {"key":"courseId","value":"1"},
+    {"key":"semesterId","value":"1"},
+    {"key":"studentId","value":"1"},
+    {"key":"demoPassword","value":""}
+  ],
+  "item": [
+    {
+      "name":"Health",
+      "item":[
+        {"name":"Health check","request":{"method":"GET","url":"{{baseUrl}}/api/health"}}
+      ]
+    },
+    {
+      "name":"Authentication",
+      "item":[
+        {
+          "name":"Lecturer login",
+          "event":[{"listen":"test","script":{"exec":[
+            "pm.test('Login succeeds',()=>pm.response.to.have.status(200));",
+            "pm.environment.set('token',pm.response.json().token);"
+          ]}}],
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{\"email\":\"lecturer@must.test\",\"password\":\"{{demoPassword}}\"}"},
+            "url":"{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name":"Invalid login",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{\"email\":\"lecturer@must.test\",\"password\":\"wrong\"}"},
+            "url":"{{baseUrl}}/api/auth/login"
+          },
+          "event":[{"listen":"test","script":{"exec":["pm.test('Invalid credentials rejected',()=>pm.response.to.have.status(401));"]}}]
+        }
+      ]
+    },
+    {
+      "name":"Lecturer",
+      "item":[
+        {
+          "name":"Submit marks",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{\"courseId\":{{courseId}},\"semesterId\":{{semesterId}},\"marks\":[{\"studentId\":{{studentId}},\"score\":78}]}"},
+            "url":"{{baseUrl}}/api/results"
+          },
+          "event":[{"listen":"test","script":{"exec":["pm.test('Created',()=>pm.response.to.have.status(201));","if(pm.response.code===201)pm.environment.set('submissionId',pm.response.json().submissionId);"]}}]
+        },
+        {
+          "name":"List results",
+          "request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/results"}
+        },
+        {
+          "name":"Invalid marks",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{\"courseId\":{{courseId}},\"semesterId\":{{semesterId}},\"marks\":[{\"studentId\":{{studentId}},\"score\":150}]}"},
+            "url":"{{baseUrl}}/api/results"
+          },
+          "event":[{"listen":"test","script":{"exec":["pm.test('Invalid marks rejected',()=>pm.response.to.have.status(422));"]}}]
+        }
+      ]
+    },
+    {
+      "name":"Reviewer",
+      "item":[
+        {
+          "name":"Verify submission",
+          "request":{
+            "method":"PATCH",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{\"decision\":\"VERIFY\"}"},
+            "url":"{{baseUrl}}/api/results/{{submissionId}}/verify"
+          }
+        }
+      ]
+    },
+    {
+      "name":"Registrar",
+      "item":[
+        {"name":"Approve submission","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/results/{{submissionId}}/approve"}},
+        {"name":"Publish submission","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/results/{{submissionId}}/publish"}}
+      ]
+    },
+    {
+      "name":"Student",
+      "item":[
+        {"name":"Own published results","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/api/students/{{studentId}}/results"}}
+      ]
+    }
+  ]
+}
