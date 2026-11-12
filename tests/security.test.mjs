@@ -3,6 +3,34 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { isMustEmail, hasRole, validateBatchMarks } from '../lib/validation.mjs'
 import { safeAppPath } from '../lib/redirects.mjs'
+import { getStatusAppearance } from '../lib/status.mjs'
+
+test('status badges use explicit status mappings and keep unknown values neutral', () => {
+  const expected = [
+    ['PENDING', 'Pending', 'warning'],
+    ['ACTIVE', 'Active', 'success'],
+    ['INACTIVE', 'Inactive', 'neutral'],
+    ['DRAFT', 'Draft', 'neutral'],
+    ['SUBMITTED', 'Submitted', 'info'],
+    ['UNDER_REVIEW', 'Under Review', 'warning'],
+    ['RETURNED', 'Returned', 'warning'],
+    ['APPROVED', 'Approved', 'success'],
+    ['REJECTED', 'Rejected', 'danger'],
+    ['PUBLISHED', 'Published', 'success'],
+    ['UNPUBLISHED', 'Unpublished', 'neutral'],
+    ['COMPLETED', 'Completed', 'success'],
+    ['FAILED', 'Failed', 'danger'],
+    ['SUSPENDED', 'Suspended', 'danger'],
+  ]
+  for (const [value, label, tone] of expected) {
+    assert.deepEqual(getStatusAppearance(value), { label, tone })
+  }
+  assert.deepEqual(getStatusAppearance('IN_PROGRESS'), { label: 'In Progress', tone: 'warning' })
+  assert.deepEqual(getStatusAppearance(true), { label: 'Active', tone: 'success' })
+  assert.deepEqual(getStatusAppearance(false), { label: 'Inactive', tone: 'neutral' })
+  assert.deepEqual(getStatusAppearance('A_NEW_DATABASE_STATE'), { label: 'A New Database State', tone: 'neutral' })
+  assert.deepEqual(getStatusAppearance(null), { label: 'Unknown', tone: 'neutral' })
+})
 
 test('institutional email policy matches the existing MUST signup trigger', () => {
   assert.equal(isMustEmail('person@must.ac.ug'), true)
@@ -132,6 +160,8 @@ test('shared MUST presentation keeps role navigation, mobile navigation and work
   }
   assert.match(ui, /aria-label="Workspace navigation"/)
   assert.match(ui, /aria-label="Mobile workspace navigation"/)
+  assert.match(ui, /getStatusAppearance/)
+  assert.ok(ui.includes("aria-label={'Status: ' + label}"))
   assert.match(ui, /profile\.role === 'LECTURER'.*Assessment setup/s)
   for (const section of ['catalogue', 'assessments', 'marks', 'workflow', 'results', 'reports', 'audit', 'support']) {
     assert.match(dashboard, new RegExp(`id="${section}"`))
@@ -140,5 +170,13 @@ test('shared MUST presentation keeps role navigation, mobile navigation and work
   assert.match(loading, /aria-busy="true"/)
   assert.match(errorPage, /role="alert"/)
   assert.match(dashboard, /Some workspace information could not be loaded/)
+  assert.match(dashboard, /dashboardStats/)
+  assert.match(dashboard, /publication_status/)
+  assert.match(dashboard, /enrollment_status/)
   assert.match(ui, /https:\/\/www\.must\.ac\.ug\//)
+  assert.match(styles, /@media\(max-width:900px\)/)
+  assert.match(styles, /@media\(max-width:480px\)/)
+  assert.match(styles, /@media\(max-width:360px\)/)
+  assert.match(styles, /overflow-x:auto/)
+  assert.match(styles, /prefers-reduced-motion:reduce/)
 })

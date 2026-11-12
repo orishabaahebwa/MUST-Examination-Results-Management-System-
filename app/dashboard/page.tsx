@@ -131,6 +131,42 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const found = currentOffering(idValue)
     return found ? <OfferingLabel offering={found} courses={courses} semesters={semesters} /> : idValue
   }
+  const countSubmissions = (...states: string[]) => submissions.filter((item) => states.includes(text(item, 'status'))).length
+  const openTickets = ticketsResult.rows.filter((ticket) => text(ticket, 'status') === 'OPEN').length
+  const dashboardStats = profile.role === 'ADMIN'
+    ? [
+        { value: profiles.length, label: 'User accounts' },
+        { value: profiles.filter((item) => text(item, 'account_status') === 'PENDING').length, label: 'Account approvals', state: 'PENDING' },
+        { value: countSubmissions('SUBMITTED', 'UNDER_REVIEW'), label: 'Results in review' },
+        { value: publishedResult.rows.length, label: 'Published results', state: 'PUBLISHED' },
+      ]
+    : profile.role === 'LECTURER'
+      ? [
+          { value: lecturerOfferingIds.length, label: 'Assigned offerings' },
+          { value: countSubmissions('SUBMITTED'), label: 'Submitted for review', state: 'SUBMITTED' },
+          { value: countSubmissions('RETURNED'), label: 'Returned for correction', state: 'RETURNED' },
+          { value: publishedResult.rows.length, label: 'Published results', state: 'PUBLISHED' },
+        ]
+      : profile.role === 'REVIEWER'
+        ? [
+            { value: reviewerOfferingIds.length, label: 'Assigned offerings' },
+            { value: countSubmissions('SUBMITTED'), label: 'Awaiting review', state: 'SUBMITTED' },
+            { value: countSubmissions('UNDER_REVIEW'), label: 'Under review', state: 'UNDER_REVIEW' },
+            { value: countSubmissions('RETURNED'), label: 'Returned to lecturers', state: 'RETURNED' },
+          ]
+        : profile.role === 'REGISTRAR'
+          ? [
+              { value: registrarOfferingIds.length, label: 'Assigned offerings' },
+              { value: countSubmissions('UNDER_REVIEW'), label: 'Awaiting approval', state: 'UNDER_REVIEW' },
+              { value: countSubmissions('APPROVED'), label: 'Approved for publication', state: 'APPROVED' },
+              { value: publishedResult.rows.length, label: 'Published results', state: 'PUBLISHED' },
+            ]
+          : [
+              { value: enrollments.filter((item) => text(item, 'enrollment_status') === 'ENROLLED').length, label: 'Current enrolments', state: 'ENROLLED' },
+              { value: publishedResult.rows.length, label: 'Published results', state: 'PUBLISHED' },
+              { value: openTickets, label: 'Open support requests', state: 'OPEN' },
+              { value: profile.account_status === 'ACTIVE' ? 1 : 0, label: 'Account access', state: profile.account_status },
+            ]
   const noticeText = notice ? <div className="notice">{notice}</div> : null
 
   return (
@@ -140,11 +176,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           {noticeText}
           {dashboardHasQueryErrors && <div className="notice error" role="alert">Some workspace information could not be loaded. Empty sections may be incomplete; refresh the page or contact support if the issue continues.</div>}
           <div className="demo-banner"><strong>Demonstration catalogue:</strong> current seeded catalogue entries are sample data. Confirm academic offerings and assignments before operational use.</div>
-          <div className="stats">
-            <div className="stat"><strong>{offerings.length}</strong><span>Course offerings visible</span></div>
-            <div className="stat"><strong>{submissions.length}</strong><span>Submissions visible</span></div>
-            <div className="stat"><strong>{publishedResult.rows.length}</strong><span>Published results visible</span></div>
-            <div className="stat"><strong>{ticketsResult.rows.filter((ticket) => text(ticket, 'status') === 'OPEN').length}</strong><span>Open support requests</span></div>
+          <div className="stats" aria-label={`${profile.role.toLowerCase()} dashboard summary`}>
+            {dashboardStats.map((item) => <div className="stat" key={item.label}>
+              <strong>{item.value}</strong><span>{item.label}</span>
+              {item.state && <StatusBadge value={item.state} />}
+            </div>)}
           </div>
 
           <div className="grid">
@@ -155,7 +191,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   const semester = semesters.find((item) => uid(item) === text(offering, 'semester_id'))
                   const year = years.find((item) => uid(item) === text(item, 'id') && uid(item) === text(semester ?? {}, 'academic_year_id'))
                   const department = departments.find((item) => uid(item) === text(course ?? {}, 'department_id'))
-                  return <tr key={uid(offering)}><td><OfferingLabel offering={offering} courses={courses} semesters={semesters} /></td><td>{text(department ?? {}, 'name') || '—'}</td><td>{text(semester ?? {}, 'status') || '—'}</td><td>{text(year ?? {}, 'label') || '—'}</td></tr>
+                  return <tr key={uid(offering)}><td><OfferingLabel offering={offering} courses={courses} semesters={semesters} /></td><td>{text(department ?? {}, 'name') || '—'}</td><td><span className="cell-primary">{text(semester ?? {}, 'name') || '—'}</span><StatusBadge value={text(semester ?? {}, 'status')} /></td><td><span className="cell-primary">{text(year ?? {}, 'label') || '—'}</span>{year && <StatusBadge value={Boolean(year.is_current)} />}</td></tr>
                 })}
               </Table> : <Empty>No catalogue offerings are available.</Empty>}
             </Card>
@@ -173,7 +209,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </Card>}
 
             {isAdmin && <Card id="access" title="Account access administration" note="New users always arrive as pending students. Use this panel only after verifying a person's institutional status.">
-              {profiles.length ? <Table headings={['User', 'Current access', 'Set access']}>{profiles.map((user) => <tr key={uid(user)}><td>{text(user, 'full_name')}<br /><small>{text(user, 'institutional_email')}</small></td><td>{text(user, 'role')} · {status(text(user, 'account_status'))}</td><td><form action={setUserAccess} className="form-grid"><input type="hidden" name="user_id" value={uid(user)} /><select aria-label="Role" name="role" defaultValue={text(user, 'role')}>{['STUDENT', 'LECTURER', 'REVIEWER', 'REGISTRAR', 'ADMIN'].map((role) => <option key={role}>{role}</option>)}</select><select aria-label="Status" name="account_status" defaultValue={text(user, 'account_status')}>{['PENDING', 'ACTIVE', 'SUSPENDED'].map((item) => <option key={item}>{item}</option>)}</select><button>Save access</button></form></td></tr>)}</Table> : <Empty>No user profiles yet.</Empty>}
+              {profiles.length ? <Table headings={['User', 'Current access', 'Set access']}>{profiles.map((user) => <tr key={uid(user)}><td>{text(user, 'full_name')}<br /><small>{text(user, 'institutional_email')}</small></td><td><span className="cell-primary">{text(user, 'role')}</span><StatusBadge value={text(user, 'account_status')} /></td><td><form action={setUserAccess} className="form-grid"><input type="hidden" name="user_id" value={uid(user)} /><select aria-label="Role" name="role" defaultValue={text(user, 'role')}>{['STUDENT', 'LECTURER', 'REVIEWER', 'REGISTRAR', 'ADMIN'].map((role) => <option key={role}>{role}</option>)}</select><select aria-label="Status" name="account_status" defaultValue={text(user, 'account_status')}>{['PENDING', 'ACTIVE', 'SUSPENDED'].map((item) => <option key={item}>{item}</option>)}</select><button>Save access</button></form></td></tr>)}</Table> : <Empty>No user profiles yet.</Empty>}
             </Card>}
 
             {isAdmin && <Card title="Staff assignments and enrolments" note="Review course access and enrolled accounts before lecturers enter marks.">
@@ -183,7 +219,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 return <tr key={uid(assignment)}><td>{offeringText(text(assignment, 'offering_id'))}</td><td>{text(person ?? {}, 'full_name') || text(assignment, 'user_id')}</td><td>{text(assignment, 'assignment_role')}</td></tr>
               })}</Table> : <Empty>No staff are assigned yet.</Empty>}
               <h3 style={{marginTop:20}}>Enrolled students</h3>
-              {enrollments.length ? <Table headings={['Offering', 'Student', 'Status']}>{enrollments.map((enrollment) => <tr key={uid(enrollment)}><td>{offeringText(text(enrollment, 'offering_id'))}</td><td>{studentName(text(enrollment, 'student_id'))}</td><td>{text(enrollment, 'enrollment_status')}</td></tr>)}</Table> : <Empty>No student enrolments are present.</Empty>}
+              {enrollments.length ? <Table headings={['Offering', 'Student', 'Status']}>{enrollments.map((enrollment) => <tr key={uid(enrollment)}><td>{offeringText(text(enrollment, 'offering_id'))}</td><td>{studentName(text(enrollment, 'student_id'))}</td><td><StatusBadge value={text(enrollment, 'enrollment_status')} /></td></tr>)}</Table> : <Empty>No student enrolments are present.</Empty>}
             </Card>}
 
             {profile.role === 'LECTURER' && <Card id="assessments" title="Assessment setup" note="Configure assessment maximum marks and weights for an assigned offering. The database requires weights to total 100 percent before publication.">
@@ -245,15 +281,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   </tr>
                   })}
               </Table> : <Empty>No assigned submissions are in the queue.</Empty>}
-              {reviewActions.rows.length > 0 && <div style={{marginTop:18}}><h3>Recent review actions</h3><Table headings={['Action', 'Comments', 'Date']}>{reviewActions.rows.map((item) => <tr key={uid(item)}><td>{text(item, 'action')}</td><td>{text(item, 'comments') || '—'}</td><td>{date(item.created_at)}</td></tr>)}</Table></div>}
+              {reviewActions.rows.length > 0 && <div style={{marginTop:18}}><h3>Recent review actions</h3><Table headings={['Action', 'Comments', 'Date']}>{reviewActions.rows.map((item) => <tr key={uid(item)}><td><StatusBadge value={text(item, 'action')} /></td><td>{text(item, 'comments') || '—'}</td><td>{date(item.created_at)}</td></tr>)}</Table></div>}
             </Card>}
 
             {profile.role === 'STUDENT' && <Card id="results" title="Published results" note="Only records published for your own authenticated profile are queried.">
-              {publishedResult.rows.length ? <Table headings={['Course offering', 'Total mark', 'Grade', 'Published']}>{publishedResult.rows.map((item) => <tr key={uid(item)}><td>{offeringText(text(item, 'offering_id'))}</td><td>{text(item, 'total_mark')}</td><td><strong>{text(item, 'grade')}</strong></td><td>{date(item.published_at)}</td></tr>)}</Table> : <Empty>No published results are available for your account.</Empty>}
+              {publishedResult.rows.length ? <Table headings={['Course offering', 'Total mark', 'Grade', 'Status', 'Published']}>{publishedResult.rows.map((item) => <tr key={uid(item)}><td>{offeringText(text(item, 'offering_id'))}</td><td>{text(item, 'total_mark')}</td><td><strong>{text(item, 'grade')}</strong></td><td><StatusBadge value={text(item, 'publication_status')} /></td><td>{date(item.published_at)}</td></tr>)}</Table> : <Empty>No published results are available for your account.</Empty>}
             </Card>}
 
             {['ADMIN', 'REGISTRAR', 'REVIEWER'].includes(profile.role) && <Card id="reports" title="Published results report" note="Official totals and grades are read from the database publication table.">
-              {publishedResult.rows.length ? <Table headings={['Offering', 'Student', 'Total', 'Grade', 'Published']}>{publishedResult.rows.map((item) => <tr key={uid(item)}><td>{offeringText(text(item, 'offering_id'))}</td><td>{studentName(text(item, 'student_id'))}</td><td>{text(item, 'total_mark')}</td><td>{text(item, 'grade')}</td><td>{date(item.published_at)}</td></tr>)}</Table> : <Empty>No published results are available.</Empty>}
+              {publishedResult.rows.length ? <Table headings={['Offering', 'Student', 'Total', 'Grade', 'Status', 'Published']}>{publishedResult.rows.map((item) => <tr key={uid(item)}><td>{offeringText(text(item, 'offering_id'))}</td><td>{studentName(text(item, 'student_id'))}</td><td>{text(item, 'total_mark')}</td><td>{text(item, 'grade')}</td><td><StatusBadge value={text(item, 'publication_status')} /></td><td>{date(item.published_at)}</td></tr>)}</Table> : <Empty>No published results are available.</Empty>}
             </Card>}
 
             {isAdmin && <Card id="audit" title="Audit trail" note="The database policy limits audit-log reads to administrators.">
